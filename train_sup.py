@@ -4,6 +4,7 @@ import torch.utils.data.sampler as sampler
 import torch.optim as optim
 import argparse
 # import matplotlib.pylab as plt
+from tqdm.auto import tqdm
 
 from network.deeplabv3.deeplabv3 import *
 from network.deeplabv2 import *
@@ -47,12 +48,15 @@ elif args.backbone == 'deeplabv2':
 total_epoch = 200
 optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=0.9, nesterov=True)
 scheduler = PolyLR(optimizer, total_epoch, power=0.9)
-create_folder(args.save_dir)
+create_folder('model_weights')
+create_folder('logging')
 
 train_epoch = len(train_l_loader)
 test_epoch = len(test_loader)
 avg_cost = np.zeros((total_epoch, 6))
 iteration = 0
+total_iteration = total_epoch * train_epoch
+pbar = tqdm(total=total_iteration)
 for index in range(total_epoch):
     cost = np.zeros(3)
     train_l_dataset = iter(train_l_loader)
@@ -89,6 +93,8 @@ for index in range(total_epoch):
         avg_cost[index, 0] += loss.item() / train_epoch
 
         iteration += 1
+        pbar.update(1)
+        pbar.set_description(f"Epoch: {index+1}/{total_epoch}, Iter: {iteration}/{total_iteration}  Loss: {loss.item():.4f}")
 
     avg_cost[index, 1:3] = conf_mat.get_metrics()
     with torch.no_grad():
@@ -125,3 +131,4 @@ for index in range(total_epoch):
         np.save('logging/{}_label{}_sup_reco_{}.npy'.format(args.dataset, args.num_labels, args.seed), avg_cost)
     else:
         np.save('logging/{}_label{}_sup_{}.npy'.format(args.dataset, args.num_labels, args.seed), avg_cost)
+pbar.close()

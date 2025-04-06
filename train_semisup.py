@@ -2,6 +2,7 @@ import torch
 import torchvision.models as models
 import torch.optim as optim
 import argparse
+from tqdm.auto import tqdm
 
 from network.deeplabv3.deeplabv3 import *
 from network.deeplabv2 import *
@@ -50,11 +51,15 @@ total_epoch = 200
 optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=0.9, nesterov=True)
 scheduler = PolyLR(optimizer, total_epoch, power=0.9)
 ema = EMA(model, 0.99)  # Mean teacher model
+create_folder('model_weights')
+create_folder('logging')
 
 train_epoch = len(train_l_loader)
 test_epoch = len(test_loader)
 avg_cost = np.zeros((total_epoch, 10))
 iteration = 0
+total_iteration = total_epoch * train_epoch
+pbar = tqdm(total=total_iteration)
 for index in range(total_epoch):
     cost = np.zeros(3)
     train_l_dataset = iter(train_l_loader)
@@ -142,6 +147,8 @@ for index in range(total_epoch):
         cost[2] = reco_loss.item()
         avg_cost[index, :3] += cost / train_epoch
         iteration += 1
+        pbar.update(1)
+        pbar.set_description(f"Epoch: {index+1}/{total_epoch}, Iter: {iteration}/{total_iteration}  Loss: {loss.item():.4f}")
 
     avg_cost[index, 3:5] = l_conf_mat.get_metrics()
     avg_cost[index, 5:7] = u_conf_mat.get_metrics()
@@ -181,4 +188,4 @@ for index in range(total_epoch):
     else:
         np.save('logging/{}_label{}_semi_{}_{}.npy'.format(args.dataset, args.num_labels, args.apply_aug, args.seed), avg_cost)
 
-
+pbar.close()
