@@ -4,7 +4,7 @@ from collections import namedtuple
 import random
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from PIL import Image
 from module_list import *
 

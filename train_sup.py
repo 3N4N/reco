@@ -3,7 +3,7 @@ import torchvision.models as models
 import torch.utils.data.sampler as sampler
 import torch.optim as optim
 import argparse
-import matplotlib.pylab as plt
+# import matplotlib.pylab as plt
 
 from network.deeplabv3.deeplabv3 import *
 from network.deeplabv2 import *

@@ -2,7 +2,7 @@ import os
 import glob
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import scipy.ndimage as ndimage
 from PIL import Image
 from module_list import *
